@@ -1,5 +1,18 @@
+
+
+
 # Movie Picture Pipeline
 
+## Developer
+Name: Nguyen Dinh Khai
+
+Email: khaind12@fpt.com
+
+## Movie Picture Pipeline URL
+- Front End: http://af522801f456947ec857e25676075959-1189938517.us-east-1.elb.amazonaws.com
+- Back End: http://ab129f05f658c4ba48fefced7116ce2e-75720904.us-east-1.elb.amazonaws.com
+
+## Description
 You've been brought on as the DevOps resource for a development team that manages a web application that is a catalog of Movie Picture movies. They're in dire need of automating their development workflows in hopes of accelerating their release cycle. They'd like to use Github Actions to automate testing, building and deploying their applications to an existing Kubernetes cluster.
 
 The team's project is comprised of 2 applications.
