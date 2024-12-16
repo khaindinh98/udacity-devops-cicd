@@ -13,7 +13,7 @@ function MovieList({ onMovieClick }) {
 
   return (
     <ul>
-      {movies && movies.length!==0 && movies.map((movie) => (
+      {movies && movies.length !== 0 && movies.map((movie) => (
         <li className="movieItem" key={movie.id} onClick={() => onMovieClick(movie)}>
           {movie.title}
         </li>
