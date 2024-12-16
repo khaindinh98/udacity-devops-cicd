@@ -14,7 +14,6 @@ env:
   ECR_BACKEND_REPO: backend
 
 jobs:
-  
   install-lint:
     runs-on: ubuntu-latest
     environment: staging

@@ -14,7 +14,6 @@ env:
   NODE_VERSION: '18.x'
 
 jobs:
-
   install-lint:
     runs-on: ubuntu-latest
     defaults:

@@ -11,11 +11,10 @@ on:
 
 # Environment
 env:
-  NODEJS_VERSION: 18.x
+  NODE_VERSION: 18.x
   REACT_APP_MOVIE_API_URL: http://127.0.0.1:5000
   ECR_FRONTEND_REPO: frontend
 jobs:
-  
   install-lint:
     name: Run Lint
     runs-on: ubuntu-latest
