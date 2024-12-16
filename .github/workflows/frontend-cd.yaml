@@ -12,7 +12,6 @@ on:
 # Environment
 env:
   NODE_VERSION: 18.x
-  REACT_APP_MOVIE_API_URL: http://127.0.0.1/backend
   ECR_FRONTEND_REPO: frontend
 jobs:
   install-lint:
