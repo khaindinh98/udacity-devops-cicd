@@ -1,0 +1,96 @@
+name: back-end-ci
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Automatic trigger on pull request events targeting the main branch
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [ main, dev]
+  
+env:
+  # Set Node.js Version
+  PYTHON_VERSION: '3.10'
+
+jobs:
+
+  install-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./starter/backend
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{env.PYTHON_VERSION}}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          starter/backend/.venv
+        key: ${{ runner.os }}-pip-${{ hashFiles('starter/backend/Pipfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pipenv install --dev
+
+    - name: Run Lint
+      run: pipenv run lint 
+      
+    - name: Run Lint Fail
+      run: pipenv run lint-fail
+      continue-on-error: true
+
+  install-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./starter/backend
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{env.PYTHON_VERSION}}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          starter/backend/.venv
+        key: ${{ runner.os }}-pip-${{ hashFiles('starter/backend/Pipfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pipenv install --dev
+
+    - name: Test And Coverage
+      run: |
+        pipenv run test 
+        pipenv run coverage
+
+  build:
+    needs: [install-test, install-lint]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./starter/backend
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker Build Image
+      run: |
+        docker build -t udacity-devops-udacraft-back-end .
