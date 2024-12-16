@@ -1,0 +1,118 @@
+name: front-end-cd
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Automatic trigger on pull request events targeting the main branch
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [ main, dev]
+
+# Environment
+env:
+  NODE_VERSION: 18.x
+  REACT_APP_MOVIE_API_URL: ${{ vars.REACT_APP_MOVIE_API_URL }}
+  ECR_FRONTEND_REPO: frontend
+jobs:
+  install-lint:
+    name: CD - Run Lint
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: ./starter/frontend
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('starter/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
+    
+    - name: Use Node.js 
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    
+    - name: Instal, Lint
+      run: | 
+        npm ci
+        npm run lint
+
+  install-test:
+    name: CD - Run Test
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: ./starter/frontend
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('starter/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
+    
+    - name: Use Node.js 
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    
+    - name: Install, Test
+      run: | 
+        npm ci
+        npm run test 
+
+  deploy:
+    name: CD - Deploy to AWS EKS Cluster
+    environment: production
+    needs: [install-lint, install-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+  
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with: 
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          
+      - name:  Build, tag, and push image to Amazon ECR
+        working-directory: ./starter/frontend
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} -t $ECR_REGISTRY/${{ env.ECR_FRONTEND_REPO }}:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG" >> $GITHUB_OUTPUT
+  
+      - name: Deploy to AWS EKS Cluster
+        working-directory: ./starter/frontend/k8s
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name cluster
+          kustomize edit set image frontend=${{ steps.build-image.outputs.image }}
+          kustomize build | kubectl apply -f -
