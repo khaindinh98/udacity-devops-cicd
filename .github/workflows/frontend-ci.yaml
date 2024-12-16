@@ -15,6 +15,7 @@ env:
 
 jobs:
   install-lint:
+    name: CI - Run Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,6 +44,7 @@ jobs:
         npm run lint
 
   install-test:
+    name: CI - Run Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,6 +73,7 @@ jobs:
         npm run test 
 
   install-build:
+    name: CI - Build
     needs: [install-test, install-lint]
     runs-on: ubuntu-latest
     defaults:

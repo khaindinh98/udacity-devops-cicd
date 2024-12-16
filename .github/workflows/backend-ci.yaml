@@ -15,6 +15,7 @@ env:
 
 jobs:
   install-lint:
+    name: CI - Run Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,6 +51,7 @@ jobs:
       continue-on-error: true
 
   install-test:
+    name: CI - Run Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,6 +85,7 @@ jobs:
         pipenv run coverage
 
   build:
+    name: CI - Build
     needs: [install-test, install-lint]
     runs-on: ubuntu-latest
     defaults:

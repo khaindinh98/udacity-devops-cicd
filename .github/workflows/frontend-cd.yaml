@@ -16,7 +16,7 @@ env:
   ECR_FRONTEND_REPO: frontend
 jobs:
   install-lint:
-    name: Run Lint
+    name: CD - Run Lint
     runs-on: ubuntu-latest
     environment: staging
     defaults:
@@ -46,7 +46,7 @@ jobs:
         npm run lint
 
   install-test:
-    name: Run Test
+    name: CD - Run Test
     runs-on: ubuntu-latest
     environment: staging
     defaults:
@@ -76,7 +76,7 @@ jobs:
         npm run test 
 
   deploy:
-    name: Deploy to AWS EKS Cluster
+    name: CD - Deploy to AWS EKS Cluster
     environment: production
     needs: [install-lint, install-test]
     runs-on: ubuntu-latest
@@ -113,5 +113,6 @@ jobs:
       - name: Deploy to AWS EKS Cluster
         working-directory: ./starter/frontend/k8s
         run: |
+          aws eks --region us-east-1 update-kubeconfig --name cluster
           kustomize edit set image frontend=${{ steps.build-image.outputs.image }}
           kustomize build | kubectl apply -f -

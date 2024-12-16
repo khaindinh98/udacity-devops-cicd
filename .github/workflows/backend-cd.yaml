@@ -15,6 +15,7 @@ env:
 
 jobs:
   install-lint:
+    name: CD - Run Lint
     runs-on: ubuntu-latest
     environment: staging
     defaults:
@@ -51,6 +52,7 @@ jobs:
       continue-on-error: true
 
   install-test:
+    name: CD - Run Test
     runs-on: ubuntu-latest
     environment: staging
     defaults:
@@ -85,7 +87,7 @@ jobs:
         pipenv run coverage
 
   deploy:
-    name:  Deploy to AWS EKS Cluster
+    name: CD - Deploy to AWS EKS Cluster
     environment: production
     needs: [install-lint, install-test]
     runs-on: ubuntu-latest
@@ -122,5 +124,6 @@ jobs:
       - name: Deploy to AWS EKS Cluster
         working-directory: ./starter/backend/k8s
         run: |
+          aws eks --region us-east-1 update-kubeconfig --name cluster
           kustomize edit set image backend=${{ steps.build-image.outputs.image }}
           kustomize build | kubectl apply -f -
