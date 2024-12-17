@@ -4,10 +4,10 @@ on:
   # Manual trigger
   workflow_dispatch:
 
-  # Automatic trigger on pull request events targeting the main branch
-  pull_request:
-    types: [opened, synchronize, closed]
-    branches: [ main, dev]
+  # Automatic trigger on push events targeting the main branch
+  push:
+    branches:
+      - main
   
 env:
   # Set Node.js Version
@@ -83,12 +83,24 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('starter/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
+
     - name: Use Node.js 
       uses: actions/setup-node@v3
       with:
         node-version: ${{env.NODE_VERSION}}
-
-    - name: Install, Build
+      
+    - name: Install, Test
       run: | 
         npm ci
-        npm run build --if-present
+        npm run test
+
+    - name: Build
+      run: npm run build --if-present
