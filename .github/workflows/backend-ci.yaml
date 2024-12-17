@@ -4,10 +4,10 @@ on:
   # Manual trigger
   workflow_dispatch:
 
-  # Automatic trigger on pull request events targeting the main branch
-  pull_request:
-    types: [opened, synchronize, closed]
-    branches: [ main, dev]
+  # Automatic trigger on push events targeting the main branch
+  push:
+    branches:
+      - main
   
 env:
   # Set Node.js Version
