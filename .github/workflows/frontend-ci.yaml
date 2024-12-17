@@ -102,5 +102,6 @@ jobs:
         npm ci
         npm run test
 
-    - name: Build
-      run: npm run build --if-present
+    - name: Docker Build Image
+      run: |
+        docker build -t udacity-devops-udacraft-front-end .
